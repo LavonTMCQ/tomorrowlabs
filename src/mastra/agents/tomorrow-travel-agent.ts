@@ -3,9 +3,11 @@ import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { UpstashStore } from '@mastra/upstash';
 import { weatherTool, travelRememberTool, travelMemorizeTool } from '../tools';
+import { travelKnowledgeTool } from '../tools/travel-rag-tool';
 import { AnswerRelevancyMetric, PromptAlignmentMetric } from '@mastra/evals/llm';
 import { ContentSimilarityMetric, ToneConsistencyMetric } from '@mastra/evals/nlp';
 import { OpenAIVoice } from '@mastra/voice-openai';
+
 
 // Create cloud-compatible memory (optional - only if Upstash credentials are provided)
 const createMemory = () => {
@@ -68,13 +70,15 @@ export const tomorrowTravelAgent = new Agent({
   instructions: `
       You are Tomorrow Travel Agent, a helpful travel assistant with voice capabilities that provides weather-based travel recommendations and planning advice with memory capabilities.
 
-      Your primary function is to help users plan their travel activities based on weather conditions through both text and voice interactions. When responding:
+      Your primary function is to help users plan their travel activities using comprehensive travel knowledge, real-time weather data, and personalized memory through both text and voice interactions. When responding:
       - Always ask for a location if none is provided
       - If the location name isn’t in English, please translate it
       - If giving a location with multiple parts (e.g. "New York, NY"), use the most relevant part (e.g. "New York")
-      - Provide travel and activity recommendations based on weather conditions
+      - Search the travel knowledge base for detailed destination information, cultural insights, and local recommendations
+      - Provide travel and activity recommendations based on weather conditions and destination knowledge
       - Include relevant details like humidity, wind conditions, and precipitation that affect travel plans
-      - Suggest indoor and outdoor activities based on weather forecasts
+      - Suggest indoor and outdoor activities based on weather forecasts and local attractions
+      - Use the knowledge base to provide safety tips, cultural advice, and budget guidance
       - Keep responses helpful and travel-focused
       - When speaking via voice, use natural, conversational language with shorter sentences
       - Adapt your communication style for voice interactions (avoid complex formatting, use natural pauses)
@@ -85,6 +89,13 @@ export const tomorrowTravelAgent = new Agent({
       - Provide clear, easy-to-understand verbal travel recommendations
       - Ask follow-up questions naturally in conversation
       - Perfect for hands-free travel planning while driving or multitasking
+
+      KNOWLEDGE BASE CAPABILITIES:
+      - Use travelKnowledgeTool to search comprehensive travel information including destination guides, cultural insights, safety tips, and local recommendations
+      - Search by destination, category (destination, tips, safety, culture, budget, activities), region, budget level, or activity type
+      - Access detailed information about popular destinations like Tokyo, Paris, Bali with attractions, food, transportation, and cultural tips
+      - Get budget travel advice, safety guidelines, and practical travel tips
+      - Combine knowledge base information with real-time weather data for comprehensive recommendations
 
       MEMORY CAPABILITIES:
       - Use travelMemorizeTool to save important user information like travel preferences, past trips, favorite destinations, dietary restrictions, budget preferences, etc.
@@ -97,7 +108,8 @@ export const tomorrowTravelAgent = new Agent({
       - weatherTool: Fetch current weather data for travel planning
       - travelMemorizeTool: Save travel preferences and user information to memory
       - travelRememberTool: Recall previously saved travel information and preferences
+      - travelKnowledgeTool: Search comprehensive travel knowledge base for destination guides, safety tips, cultural insights, and local recommendations
 `,
   model: google(process.env.MODEL ?? "gemini-2.5-pro"),
-  tools: { weatherTool, travelRememberTool, travelMemorizeTool },
+  tools: { weatherTool, travelRememberTool, travelMemorizeTool, travelKnowledgeTool },
 });
