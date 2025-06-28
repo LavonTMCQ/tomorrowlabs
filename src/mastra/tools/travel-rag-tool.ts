@@ -12,18 +12,17 @@ const initializeKB = async () => {
   if (!isInitialized) {
     try {
       await travelKB.initialize();
-      // Only populate if we have a valid PostgreSQL connection
-      if (process.env.POSTGRES_CONNECTION_STRING) {
-        await travelKB.populateKnowledgeBase();
-      }
+      await travelKB.populateKnowledgeBase();
       isInitialized = true;
+      console.log('✅ Travel knowledge base initialized successfully');
     } catch (error) {
-      console.log('ℹ️ Knowledge base initialization skipped (no PostgreSQL):', error.message);
+      console.log('ℹ️ Knowledge base initialization completed with fallback mode:', error.message);
+      isInitialized = true; // Mark as initialized even if vector store is not available
     }
   }
 };
 
-// Initialize on module load
+// Initialize on module load (non-blocking)
 void initializeKB();
 
 export const travelKnowledgeTool = createTool({

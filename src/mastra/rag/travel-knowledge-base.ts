@@ -292,18 +292,36 @@ Bali is generally safe but be cautious of traffic, strong ocean currents, and pe
 
 // Vector store configuration for travel knowledge base
 export class TravelKnowledgeBase {
-  private vectorStore: PgVector;
+  private vectorStore: PgVector | null = null;
   private indexName = 'travel_knowledge';
+  private isAvailable = false;
 
   constructor() {
-    // Use environment variable for PostgreSQL connection
-    this.vectorStore = new PgVector({
-      connectionString: process.env.POSTGRES_CONNECTION_STRING || 'postgresql://localhost:5432/travel_db',
-    });
+    // Only initialize PostgreSQL if connection string is provided
+    if (process.env.POSTGRES_CONNECTION_STRING) {
+      try {
+        this.vectorStore = new PgVector({
+          connectionString: process.env.POSTGRES_CONNECTION_STRING,
+        });
+        this.isAvailable = true;
+        console.log('✅ PostgreSQL vector store initialized');
+      } catch (error) {
+        console.log('⚠️ PostgreSQL vector store initialization failed:', error.message);
+        this.isAvailable = false;
+      }
+    } else {
+      console.log('ℹ️ No PostgreSQL connection string provided, using fallback mode');
+      this.isAvailable = false;
+    }
   }
 
   // Initialize the knowledge base
   async initialize() {
+    if (!this.isAvailable || !this.vectorStore) {
+      console.log('ℹ️ Vector store not available, skipping initialization');
+      return;
+    }
+
     try {
       // Create vector index for travel knowledge
       await this.vectorStore.createIndex({
@@ -313,12 +331,18 @@ export class TravelKnowledgeBase {
 
       console.log('✅ Travel knowledge base vector index created');
     } catch (error) {
-      console.log('ℹ️ Vector index already exists or error:', error);
+      console.log('ℹ️ Vector index already exists or error:', error.message);
+      // Don't throw error, just log it
     }
   }
 
   // Populate the knowledge base with travel content
   async populateKnowledgeBase() {
+    if (!this.isAvailable || !this.vectorStore) {
+      console.log('ℹ️ Vector store not available, skipping knowledge base population');
+      return;
+    }
+
     console.log('📚 Populating travel knowledge base...');
 
     const allContent = [
@@ -335,6 +359,11 @@ export class TravelKnowledgeBase {
 
   // Add a single document to the knowledge base
   async addDocument(item: any) {
+    if (!this.isAvailable || !this.vectorStore) {
+      console.log(`ℹ️ Skipping document ${item.name || item.id} - vector store not available`);
+      return;
+    }
+
     try {
       // Create document from content
       const doc = MDocument.fromMarkdown(item.content);
@@ -378,7 +407,7 @@ export class TravelKnowledgeBase {
 
       console.log(`✅ Added ${item.name || item.id} to knowledge base (${chunks.length} chunks)`);
     } catch (error) {
-      console.error(`❌ Error adding ${item.name || item.id}:`, error);
+      console.error(`❌ Error adding ${item.name || item.id}:`, error.message);
     }
   }
 
@@ -387,6 +416,11 @@ export class TravelKnowledgeBase {
     topK?: number;
     filter?: any;
   } = {}) {
+    if (!this.isAvailable || !this.vectorStore) {
+      console.log('ℹ️ Vector store not available, returning empty results');
+      return [];
+    }
+
     const { topK = 5, filter } = options;
 
     try {
@@ -406,7 +440,7 @@ export class TravelKnowledgeBase {
 
       return results;
     } catch (error) {
-      console.error('❌ Error querying knowledge base:', error);
+      console.error('❌ Error querying knowledge base:', error.message);
       return [];
     }
   }
