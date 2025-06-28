@@ -4,8 +4,13 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "mastra dev"
+    "dev": "mastra dev",
+    "build": "mastra build",
+    "start": "mastra start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:evals": "vitest run src/mastra/evals/",
+    "test:evals:watch": "vitest src/mastra/evals/"
   },
   "keywords": [],
   "author": "",
@@ -15,10 +20,12 @@
   "dependencies": {
     "@ai-sdk/google": "^1.2.19",
     "@mastra/core": "latest",
+    "@mastra/evals": "^0.10.5",
     "@mastra/loggers": "latest",
     "@mastra/mem0": "^0.1.4",
     "@mastra/memory": "^0.11.0",
     "@mastra/upstash": "^0.12.0",
+    "vitest": "^3.2.4",
     "zod": "^3.25.67"
   },
   "devDependencies": {
