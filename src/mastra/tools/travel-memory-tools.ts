@@ -1,6 +1,7 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import { mem0 } from '../integrations/mem0-integration';
+import { TravelAgentTelemetry } from '../telemetry/travel-metrics';
 
 export const travelRememberTool = createTool({
   id: 'travel-remember',
@@ -12,13 +13,15 @@ export const travelRememberTool = createTool({
     answer: z.string().describe('Remembered travel information'),
   }),
   execute: async ({ context }) => {
-    console.log(`Searching travel memory: "${context.question}"`);
-    const memory = await mem0.searchMemory(context.question);
-    console.log(`Found travel memory: "${memory}"`);
+    return await TravelAgentTelemetry.trackMemoryRetrieval(async () => {
+      console.log(`Searching travel memory: "${context.question}"`);
+      const memory = await mem0.searchMemory(context.question);
+      console.log(`Found travel memory: "${memory}"`);
 
-    return {
-      answer: memory,
-    };
+      return {
+        answer: memory,
+      };
+    }, 'mem0');
   },
 });
 
@@ -29,11 +32,13 @@ export const travelMemorizeTool = createTool({
     statement: z.string().describe('Travel-related information to save into memory (preferences, past trips, destinations, etc.)'),
   }),
   execute: async ({ context }) => {
-    console.log(`Creating travel memory: "${context.statement}"`);
-    // Save memories async to reduce latency
-    void mem0.createMemory(context.statement).then(() => {
-      console.log(`Travel memory saved: "${context.statement}"`);
-    });
-    return { success: true };
+    return await TravelAgentTelemetry.trackMemoryRetrieval(async () => {
+      console.log(`Creating travel memory: "${context.statement}"`);
+      // Save memories async to reduce latency
+      void mem0.createMemory(context.statement).then(() => {
+        console.log(`Travel memory saved: "${context.statement}"`);
+      });
+      return { success: true };
+    }, 'mem0');
   },
 });

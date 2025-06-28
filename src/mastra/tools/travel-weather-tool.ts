@@ -1,5 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
+import { TravelAgentTelemetry } from '../telemetry/travel-metrics';
 
 interface GeocodingResponse {
   results: {
@@ -36,7 +37,10 @@ export const weatherTool = createTool({
     location: z.string(),
   }),
   execute: async ({ context }) => {
-    return await getWeather(context.location);
+    return await TravelAgentTelemetry.trackWeatherApiCall(
+      () => getWeather(context.location),
+      context.location
+    );
   },
 });
 
