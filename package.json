@@ -1,5 +1,5 @@
 {
-  "name": "weather-agent",
+  "name": "tomorrow-travel-agent",
   "version": "1.0.0",
   "main": "index.js",
   "private": true,
@@ -13,10 +13,11 @@
   "description": "",
   "type": "module",
   "dependencies": {
+    "@ai-sdk/google": "^1.2.19",
     "@mastra/core": "latest",
     "@mastra/loggers": "latest",
-    "zod": "^3.25.67",
-    "@ai-sdk/google": "^1.2.19"
+    "@mastra/mem0": "^0.1.4",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/node": "^22.15.29",

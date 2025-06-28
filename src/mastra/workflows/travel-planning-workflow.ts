@@ -5,11 +5,11 @@ import { z } from 'zod';
 
 const llm = google(process.env.MODEL ?? "gemini-2.5-pro");
 
-const agent = new Agent({
-  name: 'Weather Agent',
+const travelPlanningAgent = new Agent({
+  name: 'Tomorrow Travel Planning Agent',
   model: llm,
   instructions: `
-        You are a local activities and travel expert who excels at weather-based planning. Analyze the weather data and provide practical activity recommendations.
+        You are Tomorrow Travel Planning Agent, a local activities and travel expert who excels at weather-based planning. Analyze the weather data and provide practical activity recommendations.
 
         For each day in the forecast, structure your response exactly as follows:
 
@@ -153,7 +153,7 @@ const planActivities = createStep({
       ${JSON.stringify(forecast, null, 2)}
       `;
 
-    const response = await agent.stream([
+    const response = await travelPlanningAgent.stream([
       {
         role: 'user',
         content: prompt,
@@ -173,10 +173,10 @@ const planActivities = createStep({
   },
 });
 
-const weatherWorkflow = createWorkflow({
-  id: 'weather-workflow',
+const travelPlanningWorkflow = createWorkflow({
+  id: 'travel-planning-workflow',
   inputSchema: z.object({
-    city: z.string().describe('The city to get the weather for'),
+    city: z.string().describe('The city to get travel planning for'),
   }),
   outputSchema: z.object({
     activities: z.string(),
@@ -185,6 +185,6 @@ const weatherWorkflow = createWorkflow({
   .then(fetchWeather)
   .then(planActivities);
 
-weatherWorkflow.commit();
+travelPlanningWorkflow.commit();
 
-export { weatherWorkflow };
+export { travelPlanningWorkflow };
