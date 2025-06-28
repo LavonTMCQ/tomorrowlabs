@@ -41,17 +41,16 @@ export const tomorrowTravelAgent = new Agent({
   name: 'Tomorrow Travel Agent',
   memory: createMemory(), // Add native Mastra memory if Upstash is configured
   evals: {
-    answerRelevancy: new AnswerRelevancyMetric(evalModel, { scale: 1 }),
+    answerRelevancy: new AnswerRelevancyMetric(evalModel),
     promptAlignment: new PromptAlignmentMetric(evalModel, {
       instructions: [
         "Provide specific travel recommendations based on weather conditions",
         "Include budget considerations when mentioned",
         "Suggest activities appropriate for the destination and season",
         "Maintain a helpful and informative tone"
-      ],
-      scale: 1
+      ]
     }),
-    contentSimilarity: new ContentSimilarityMetric({ ignoreCase: true, ignoreWhitespace: true }),
+    contentSimilarity: new ContentSimilarityMetric(),
     toneConsistency: new ToneConsistencyMetric(),
   },
   instructions: `
