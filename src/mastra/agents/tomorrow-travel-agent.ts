@@ -1,9 +1,40 @@
 import { google } from '@ai-sdk/google';
 import { Agent } from '@mastra/core/agent';
+import { Memory } from '@mastra/memory';
+import { UpstashStore } from '@mastra/upstash';
 import { weatherTool, travelRememberTool, travelMemorizeTool } from '../tools';
+
+// Create cloud-compatible memory (optional - only if Upstash credentials are provided)
+const createMemory = () => {
+  if (process.env.UPSTASH_URL && process.env.UPSTASH_TOKEN) {
+    return new Memory({
+      storage: new UpstashStore({
+        url: process.env.UPSTASH_URL,
+        token: process.env.UPSTASH_TOKEN,
+      }),
+      options: {
+        lastMessages: 10,
+        workingMemory: {
+          enabled: true,
+          template: `# Travel Profile
+- **Name**:
+- **Preferred Destinations**:
+- **Budget Range**:
+- **Travel Style**:
+- **Favorite Activities**:
+- **Dietary Restrictions**:
+- **Past Trips**:
+`,
+        },
+      },
+    });
+  }
+  return undefined;
+};
 
 export const tomorrowTravelAgent = new Agent({
   name: 'Tomorrow Travel Agent',
+  memory: createMemory(), // Add native Mastra memory if Upstash is configured
   instructions: `
       You are Tomorrow Travel Agent, a helpful travel assistant that provides weather-based travel recommendations and planning advice with memory capabilities.
 
