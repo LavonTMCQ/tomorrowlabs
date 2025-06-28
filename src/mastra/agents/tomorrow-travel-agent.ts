@@ -3,6 +3,8 @@ import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { UpstashStore } from '@mastra/upstash';
 import { weatherTool, travelRememberTool, travelMemorizeTool } from '../tools';
+import { AnswerRelevancyMetric, PromptAlignmentMetric } from '@mastra/evals/llm';
+import { ContentSimilarityMetric, ToneConsistencyMetric } from '@mastra/evals/nlp';
 
 // Create cloud-compatible memory (optional - only if Upstash credentials are provided)
 const createMemory = () => {
@@ -32,9 +34,26 @@ const createMemory = () => {
   return undefined;
 };
 
+// Create evaluation model for metrics
+const evalModel = google(process.env.MODEL ?? "gemini-2.5-pro");
+
 export const tomorrowTravelAgent = new Agent({
   name: 'Tomorrow Travel Agent',
   memory: createMemory(), // Add native Mastra memory if Upstash is configured
+  evals: {
+    answerRelevancy: new AnswerRelevancyMetric(evalModel, { scale: 1 }),
+    promptAlignment: new PromptAlignmentMetric(evalModel, {
+      instructions: [
+        "Provide specific travel recommendations based on weather conditions",
+        "Include budget considerations when mentioned",
+        "Suggest activities appropriate for the destination and season",
+        "Maintain a helpful and informative tone"
+      ],
+      scale: 1
+    }),
+    contentSimilarity: new ContentSimilarityMetric({ ignoreCase: true, ignoreWhitespace: true }),
+    toneConsistency: new ToneConsistencyMetric(),
+  },
   instructions: `
       You are Tomorrow Travel Agent, a helpful travel assistant that provides weather-based travel recommendations and planning advice with memory capabilities.
 
