@@ -1,12 +1,29 @@
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
+import { LibSQLStore } from '@mastra/libsql';
 import { travelPlanningWorkflow } from './workflows/travel-planning-workflow';
 import { tomorrowTravelAgent } from './agents/tomorrow-travel-agent';
+import { credoAIAgent } from './agents/credo-ai-agent';
+import { credoAIAgent as credoAIAgentEnhanced } from './agents/credo-ai-agent-enhanced';
+import { themeRecommendationWorkflow } from './agents/credo-ai-agent-enhanced';
 import { attachListeners } from '@mastra/evals';
 
+// Configure persistent storage for production
+const storage = new LibSQLStore({
+  url: process.env.DATABASE_URL || 'file:./mastra.db',
+});
+
 export const mastra = new Mastra({
-  workflows: { travelPlanningWorkflow },
-  agents: { tomorrowTravelAgent },
+  workflows: { 
+    travelPlanningWorkflow,
+    themeRecommendationWorkflow 
+  },
+  agents: { 
+    tomorrowTravelAgent, 
+    credoAIAgent,
+    credoAIAgentEnhanced 
+  },
+  storage,
   logger: new PinoLogger({
     name: 'Tomorrow Travel Agent',
     level: 'info',
