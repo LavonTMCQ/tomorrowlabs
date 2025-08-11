@@ -3,14 +3,13 @@ import { PinoLogger } from '@mastra/loggers';
 import { LibSQLStore } from '@mastra/libsql';
 import { travelPlanningWorkflow } from './workflows/travel-planning-workflow';
 import { tomorrowTravelAgent } from './agents/tomorrow-travel-agent';
-import { credoAIAgent } from './agents/credo-ai-agent';
 import { 
-  credoAIAgent as credoAIAgentEnhanced,
+  credoAIAgent,
   themeRecommendationWorkflow,
   webScraperTool,
   toneAnalyzerTool,
   articleFetcherTool
-} from './agents/credo-ai-agent-enhanced';
+} from './agents/credo-ai-agent';
 import { attachListeners } from '@mastra/evals';
 
 // Configure persistent storage for production
@@ -25,8 +24,7 @@ export const mastra = new Mastra({
   },
   agents: { 
     tomorrowTravelAgent, 
-    credoAIAgent,
-    credoAIAgentEnhanced 
+    credoAIAgent
   },
   tools: {
     webScraperTool,
@@ -59,4 +57,4 @@ export {
   suggestLinkTitlesWithTools,
   recommendThemeWithWorkflow,
   summarizeArticleWithContext
-} from './agents/credo-ai-agent-enhanced';
+} from './agents/credo-ai-agent';
