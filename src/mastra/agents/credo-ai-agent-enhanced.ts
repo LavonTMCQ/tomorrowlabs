@@ -12,21 +12,13 @@ import { openai } from '@ai-sdk/openai';
 
 // Configure persistent memory for the Credo AI Agent
 // This uses resource-scoped memory to remember users across conversations
-const credoMemory = new Memory({
-  storage: new LibSQLStore({
-    url: process.env.MASTRA_DB_URL || 'file:./credo-memory.db',
-  }),
-  options: {
-    lastMessages: 20, // Remember last 20 messages for context
-    semanticRecall: {
-      topK: 5, // Retrieve 5 most relevant past messages
-      messageRange: 3, // Include 3 messages of context
-      scope: 'resource', // Remember across all user conversations
-    },
-    workingMemory: {
-      enabled: true,
-      scope: 'resource', // Persistent user profile across threads
-      template: `# Credo User Profile
+// Semantic recall is disabled when no vector store is available
+const memoryOptions: any = {
+  lastMessages: 20, // Remember last 20 messages for context
+  workingMemory: {
+    enabled: true,
+    scope: 'resource', // Persistent user profile across threads
+    template: `# Credo User Profile
 ## Personal Information
 - **Name**: 
 - **Company/Role**: 
@@ -55,9 +47,31 @@ const credoMemory = new Memory({
 - **AI Suggestions Used**: 
 - **Feedback Notes**: 
 `,
-    },
   },
-});
+};
+
+// Only enable semantic recall if a vector store is configured
+if (process.env.POSTGRES_CONNECTION_STRING) {
+  memoryOptions.semanticRecall = {
+    topK: 5, // Retrieve 5 most relevant past messages
+    messageRange: 3, // Include 3 messages of context
+    scope: 'resource', // Remember across all user conversations
+  };
+}
+
+// Create memory only if storage is available
+let credoMemory: Memory | undefined;
+try {
+  credoMemory = new Memory({
+    storage: new LibSQLStore({
+      url: process.env.MASTRA_DB_URL || 'file:./credo-memory.db',
+    }),
+    options: memoryOptions,
+  });
+} catch (error) {
+  console.warn('Memory initialization failed, continuing without persistent memory:', error);
+  // Agent will work without memory, just won't remember across conversations
+}
 
 // ==========================================
 // 2. TOOLS DEFINITION
@@ -176,19 +190,21 @@ export const articleFetcherTool = createTool({
 export const credoAIAgent = new Agent({
   name: 'credo-ai-agent-enhanced',
   model: openai('gpt-4o-mini'),
-  memory: credoMemory,
+  ...(credoMemory && { memory: credoMemory }),
   tools: {
     webScraperTool,
     toneAnalyzerTool,
     articleFetcherTool,
   },
-  instructions: `You are the Credo AI Assistant with persistent memory and advanced capabilities.
+  instructions: `You are the Credo AI Assistant with advanced capabilities.
 
 ## Your Memory System:
-- You remember users across ALL their conversations (resource-scoped memory)
+${credoMemory ? `- You have persistent memory that remembers users across ALL their conversations
 - You track their bio evolution, preferences, and interaction history
 - Always update your working memory when you learn something new about the user
-- Reference previous interactions to provide personalized suggestions
+- Reference previous interactions to provide personalized suggestions` : 
+`- Memory is currently not available in this environment
+- Provide the best assistance possible within the current conversation context`}
 
 ## Your Tools:
 - web-scraper: Extract metadata from URLs
