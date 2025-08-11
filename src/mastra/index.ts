@@ -4,8 +4,13 @@ import { LibSQLStore } from '@mastra/libsql';
 import { travelPlanningWorkflow } from './workflows/travel-planning-workflow';
 import { tomorrowTravelAgent } from './agents/tomorrow-travel-agent';
 import { credoAIAgent } from './agents/credo-ai-agent';
-import { credoAIAgent as credoAIAgentEnhanced } from './agents/credo-ai-agent-enhanced';
-import { themeRecommendationWorkflow } from './agents/credo-ai-agent-enhanced';
+import { 
+  credoAIAgent as credoAIAgentEnhanced,
+  themeRecommendationWorkflow,
+  webScraperTool,
+  toneAnalyzerTool,
+  articleFetcherTool
+} from './agents/credo-ai-agent-enhanced';
 import { attachListeners } from '@mastra/evals';
 
 // Configure persistent storage for production
@@ -22,6 +27,11 @@ export const mastra = new Mastra({
     tomorrowTravelAgent, 
     credoAIAgent,
     credoAIAgentEnhanced 
+  },
+  tools: {
+    webScraperTool,
+    toneAnalyzerTool,
+    articleFetcherTool
   },
   storage,
   logger: new PinoLogger({
@@ -42,3 +52,11 @@ export const mastra = new Mastra({
 
 // Attach evaluation listeners for Mastra Cloud integration
 attachListeners(mastra);
+
+// Export enhanced agent functions for API usage
+export { 
+  generateBioWithMemory,
+  suggestLinkTitlesWithTools,
+  recommendThemeWithWorkflow,
+  summarizeArticleWithContext
+} from './agents/credo-ai-agent-enhanced';
