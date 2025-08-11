@@ -10,6 +10,9 @@ import {
   toneAnalyzerTool,
   articleFetcherTool
 } from './agents/credo-ai-agent';
+import { credoVoiceAgent } from './agents/credo-voice-agent';
+import { onboardingWizardWorkflow } from './workflows/onboarding-wizard';
+import { insightsEngineWorkflow } from './workflows/insights-engine';
 import { attachListeners } from '@mastra/evals';
 
 // Configure persistent storage for production
@@ -20,11 +23,14 @@ const storage = new LibSQLStore({
 export const mastra = new Mastra({
   workflows: { 
     travelPlanningWorkflow,
-    themeRecommendationWorkflow 
+    themeRecommendationWorkflow,
+    onboardingWizardWorkflow,
+    insightsEngineWorkflow
   },
   agents: { 
     tomorrowTravelAgent, 
-    credoAIAgent
+    credoAIAgent,
+    credoVoiceAgent
   },
   tools: {
     webScraperTool,
@@ -58,3 +64,10 @@ export {
   recommendThemeWithWorkflow,
   summarizeArticleWithContext
 } from './agents/credo-ai-agent';
+
+// Export workflow functions
+export { runOnboardingWizard } from './workflows/onboarding-wizard';
+export { generateInsights } from './workflows/insights-engine';
+
+// Export voice handler
+export { handleVoiceCommand } from './agents/credo-voice-agent';
